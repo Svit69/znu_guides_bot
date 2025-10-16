@@ -178,7 +178,7 @@ export class BotApp extends Application {
           scope: {
             type: 'chat',
             chat_id: adminId
-          }
+          },
         });
       } catch (error) {
         this.logger?.error(`Failed to set admin commands for ${adminId}.`, error);
@@ -190,7 +190,13 @@ export class BotApp extends Application {
    * Registers all command handlers with the bot instance.
    */
   registerCommands() {
-    this.commandRegistry.register(new StartCommand());
+    this.commandRegistry.register(
+      new StartCommand({
+        guideService: this.guideService,
+        messages: this.config.messages,
+        logger: this.logger
+      })
+    );
     this.commandRegistry.register(
       new GetGuidesCommand({
         guideService: this.guideService,
