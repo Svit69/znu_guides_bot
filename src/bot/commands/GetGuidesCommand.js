@@ -65,13 +65,19 @@ export class GetGuidesCommand extends CommandHandler {
     try {
       const guideId = ctx.match?.[1];
       if (!guideId) {
-        await ctx.answerCallbackQuery({ text: 'Не удалось определить выбранный гайд.', show_alert: true });
+        await ctx.answerCallbackQuery({
+          text: 'Не удалось определить выбранный гайд. Попробуйте снова.',
+          show_alert: true
+        });
         return;
       }
 
       const guide = await this.guideService.getGuideById(guideId);
       if (!guide) {
-        await ctx.answerCallbackQuery({ text: 'Гайд недоступен. Попробуйте позже.', show_alert: true });
+        await ctx.answerCallbackQuery({
+          text: 'Гайд недоступен. Попробуйте позже.',
+          show_alert: true
+        });
         return;
       }
 
@@ -81,7 +87,10 @@ export class GetGuidesCommand extends CommandHandler {
       });
     } catch (error) {
       this.logger?.error('Failed to send guide to user.', error);
-      await ctx.answerCallbackQuery({ text: 'Произошла ошибка. Попробуйте позже.', show_alert: true });
+      await ctx.answerCallbackQuery({
+        text: 'Произошла ошибка. Попробуйте позже.',
+        show_alert: true
+      });
       await ctx.reply(this.messages.noGuides);
     }
   }

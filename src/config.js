@@ -1,6 +1,39 @@
 import { config as loadEnv } from 'dotenv';
+import { resolve } from 'node:path';
 
 loadEnv();
+
+const parseAdminIds = () => {
+  const raw = process.env.ADMIN_USER_IDS ?? '';
+  return raw
+    .split(',')
+    .map((value) => Number(value.trim()))
+    .filter((value) => Number.isInteger(value) && value > 0);
+};
+
+const defaultGuidesFile =
+  process.env.GUIDES_DATA_PATH && process.env.GUIDES_DATA_PATH.trim().length > 0
+    ? resolve(process.cwd(), process.env.GUIDES_DATA_PATH)
+    : resolve(process.cwd(), 'data', 'guides.json');
+
+/**
+ * Guide descriptor shape.
+ * @typedef {Object} GuideDescriptor
+ * @property {string} id Unique identifier.
+ * @property {string} title Guide human-readable title.
+ * @property {string} fileId Telegram file identifier.
+ */
+
+/**
+ * Text resources used across the bot.
+ * @typedef {Object} MessageCatalog
+ * @property {string} noGuides Fallback message when no guides are available.
+ * @property {string} adminOnly Notice for non-admin users attempting admin commands.
+ * @property {string} guideAdded Confirmation text for successfully added guides.
+ * @property {string} guideDeleted Confirmation text for successfully deleted guides.
+ * @property {string} nothingToConfirm Message when there is no pending admin action to confirm.
+ * @property {string} flowCancelled Message when admin flow is cancelled.
+ */
 
 /**
  * Application-level configuration loaded from environment variables.
@@ -8,8 +41,10 @@ loadEnv();
  * @property {string} botToken Telegram bot token.
  * @property {Object} polling Telegram polling configuration.
  * @property {string[]} polling.allowedUpdates Allowed update types for long polling.
- * @property {Array<{id: string, title: string, fileId: string}>} guides Available guide descriptors.
- * @property {{ noGuides: string }} messages Text resources used across the bot.
+ * @property {GuideDescriptor[]} guides Static guide descriptors used for initial seeding.
+ * @property {number[]} admins List of Telegram user identifiers with admin privileges.
+ * @property {{ guidesFile: string }} storage Storage locations used by the app.
+ * @property {MessageCatalog} messages Text resources shared throughout the bot.
  */
 
 /**
@@ -32,9 +67,18 @@ export const config = {
       fileId: process.env.GUIDE_LAND_PLOT_FILE_ID ?? ''
     }
   ],
+  admins: parseAdminIds(),
+  storage: {
+    guidesFile: defaultGuidesFile
+  },
   messages: {
     noGuides:
-      'Пока гайдов нет, но дух стройки жив! Уже завозим контент, ставим леса и натягиваем сетку полезных советов'
+      'Пока гайдов нет, но дух стройки жив! Уже завозим контент, ставим леса и натягиваем сетку полезных советов',
+    adminOnly: 'Команда доступна только администраторам.',
+    guideAdded: 'Гайд добавлен.',
+    guideDeleted: 'Гайд удалён.',
+    nothingToConfirm: 'Нет действий, требующих подтверждения.',
+    flowCancelled: 'Действие отменено.'
   }
 };
 

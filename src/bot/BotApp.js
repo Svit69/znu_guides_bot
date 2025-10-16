@@ -1,10 +1,17 @@
-import { Bot } from 'grammy';
+import { Bot, session } from 'grammy';
 import { Application } from '../core/Application.js';
 import { ConsoleLogger } from '../core/Logger.js';
 import { CommandRegistry } from './CommandRegistry.js';
 import { StartCommand } from './commands/StartCommand.js';
 import { GetGuidesCommand } from './commands/GetGuidesCommand.js';
 import { GuideService } from './services/GuideService.js';
+import { GuideRepository } from './repositories/GuideRepository.js';
+import { AdminService } from './services/AdminService.js';
+import { AdminFlowManager } from './admin/AdminFlowManager.js';
+import { AdminMenuCommand } from './commands/admin/AdminMenuCommand.js';
+import { ShowGuidesCommand } from './commands/admin/ShowGuidesCommand.js';
+import { AddGuideCommand } from './commands/admin/AddGuideCommand.js';
+import { DeleteGuideCommand } from './commands/admin/DeleteGuideCommand.js';
 
 /**
  * Orchestrates bot initialization and lifecycle.
@@ -17,13 +24,25 @@ export class BotApp extends Application {
    * @param {CommandRegistry} [params.commandRegistry] Optional registry instance.
    * @param {import('../core/Logger.js').Logger} [params.logger] Custom logger implementation.
    * @param {GuideService} [params.guideService] Guide metadata service.
+   * @param {GuideRepository} [params.guideRepository] Guides repository.
+   * @param {AdminService} [params.adminService] Administrator service.
+   * @param {AdminFlowManager} [params.adminFlowManager] Admin flow manager.
    */
-  constructor({ config, bot, commandRegistry, logger, guideService }) {
+  constructor({
+    config,
+    bot,
+    commandRegistry,
+    logger,
+    guideService,
+    guideRepository,
+    adminService,
+    adminFlowManager
+  }) {
     super({ logger: logger ?? new ConsoleLogger() });
 
     /**
      * @private
-     * @type {import('../config.js').config}
+     * @type {typeof import('../config.js').config}
      */
     this.config = config;
 
@@ -41,13 +60,56 @@ export class BotApp extends Application {
 
     /**
      * @private
+     * @type {GuideRepository}
+     */
+    this.guideRepository =
+      guideRepository ??
+      new GuideRepository({
+        storagePath: this.config.storage.guidesFile,
+        logger: this.logger
+      });
+
+    /**
+     * @private
      * @type {GuideService}
      */
     this.guideService =
       guideService ??
       new GuideService({
-        config: this.config,
+        repository: this.guideRepository,
+        initialGuides: this.config.guides,
         logger: this.logger
+      });
+
+    /**
+     * @private
+     * @type {AdminService}
+     */
+    this.adminService =
+      adminService ??
+      new AdminService({
+        adminIds: this.config.admins,
+        messages: { adminOnly: this.config.messages.adminOnly },
+        logger: this.logger
+      });
+
+    /**
+     * @private
+     * @type {AdminFlowManager}
+     */
+    this.adminFlowManager =
+      adminFlowManager ??
+      new AdminFlowManager({
+        guideService: this.guideService,
+        adminService: this.adminService,
+        logger: this.logger,
+        messages: {
+          guideAdded: this.config.messages.guideAdded,
+          guideDeleted: this.config.messages.guideDeleted,
+          nothingToConfirm: this.config.messages.nothingToConfirm,
+          flowCancelled: this.config.messages.flowCancelled,
+          noGuides: this.config.messages.noGuides
+        }
       });
 
     /**
@@ -55,6 +117,33 @@ export class BotApp extends Application {
      * @type {boolean}
      */
     this.running = false;
+
+    /**
+     * @private
+     * @type {boolean}
+     */
+    this.middlewaresConfigured = false;
+  }
+
+  /**
+   * Registers middleware stack for the bot.
+   */
+  configureMiddlewares() {
+    if (this.middlewaresConfigured) {
+      return;
+    }
+
+    this.bot.use(
+      session({
+        initial: () => ({
+          adminFlow: null
+        })
+      })
+    );
+
+    this.adminFlowManager.register(this.bot);
+
+    this.middlewaresConfigured = true;
   }
 
   /**
@@ -66,6 +155,34 @@ export class BotApp extends Application {
       new GetGuidesCommand({
         guideService: this.guideService,
         messages: this.config.messages,
+        logger: this.logger
+      })
+    );
+    this.commandRegistry.register(
+      new AdminMenuCommand({
+        adminService: this.adminService,
+        logger: this.logger
+      })
+    );
+    this.commandRegistry.register(
+      new ShowGuidesCommand({
+        adminService: this.adminService,
+        guideService: this.guideService,
+        messages: this.config.messages,
+        logger: this.logger
+      })
+    );
+    this.commandRegistry.register(
+      new AddGuideCommand({
+        adminService: this.adminService,
+        flowManager: this.adminFlowManager,
+        logger: this.logger
+      })
+    );
+    this.commandRegistry.register(
+      new DeleteGuideCommand({
+        adminService: this.adminService,
+        flowManager: this.adminFlowManager,
         logger: this.logger
       })
     );
@@ -81,7 +198,9 @@ export class BotApp extends Application {
       return;
     }
 
+    this.configureMiddlewares();
     this.registerCommands();
+    await this.guideService.ensureSeeded();
 
     await this.bot.start({
       allowed_updates: this.config.polling.allowedUpdates,
