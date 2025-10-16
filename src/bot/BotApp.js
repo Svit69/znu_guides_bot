@@ -147,6 +147,46 @@ export class BotApp extends Application {
   }
 
   /**
+   * Configures command menus visible to users and administrators.
+   * @returns {Promise<void>}
+   */
+  async configureCommands() {
+    const userCommands = [
+      { command: 'start', description: 'Информация о согласиях' },
+      { command: 'get', description: 'Получить доступ к гайдам' }
+    ];
+
+    await this.bot.api.setMyCommands(userCommands);
+
+    if (!this.config.admins.length) {
+      return;
+    }
+
+    const adminCommands = [
+      ...userCommands,
+      { command: 'admin', description: 'Список админских команд' },
+      { command: 'show_guides', description: 'Показать список всех гайдов' },
+      { command: 'add', description: 'Добавить новый гайд' },
+      { command: 'delete', description: 'Удалить гайд' },
+      { command: 'confirm', description: 'Подтвердить действие' },
+      { command: 'cancel', description: 'Отменить действие' }
+    ];
+
+    for (const adminId of this.config.admins) {
+      try {
+        await this.bot.api.setMyCommands(adminCommands, {
+          scope: {
+            type: 'chat',
+            chat_id: adminId
+          }
+        });
+      } catch (error) {
+        this.logger?.error(`Failed to set admin commands for ${adminId}.`, error);
+      }
+    }
+  }
+
+  /**
    * Registers all command handlers with the bot instance.
    */
   registerCommands() {
@@ -201,6 +241,7 @@ export class BotApp extends Application {
     this.configureMiddlewares();
     this.registerCommands();
     await this.guideService.ensureSeeded();
+    await this.configureCommands();
 
     await this.bot.start({
       allowed_updates: this.config.polling.allowedUpdates,
