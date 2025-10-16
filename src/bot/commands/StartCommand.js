@@ -21,7 +21,7 @@ export class StartCommand extends CommandHandler {
       '<a href="https://zagorodom96.ru/privacy">Политикой конфиденциальности</a> и',
       '<a href="https://mantsova.tilda.ws/oferta">Договором оферты</a>.',
       '',
-      'Нажимая /start, вы подтверждаете своё согласие.'
+      'Нажимая /get, вы подтверждаете своё согласие.'
     ].join('\n');
 
     await ctx.reply(message, {
