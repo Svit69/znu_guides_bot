@@ -1,0 +1,17 @@
+{
+  "name": "znu-guides-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot implemented with SOLID/OOP architecture using grammy.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "grammy": "^1.22.4"
+  }
+}
