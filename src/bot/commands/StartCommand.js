@@ -59,8 +59,8 @@ export class StartCommand extends CommandHandler {
       'Подтвердите своё согласие на получение информационных и маркетинговых сообщений, а также на обработку персональных данных в соответствии с нашими документами:',
       '',
       '• <a href="https://zagorodom96.ru/privacy">Политика конфиденциальности</a>',
-      '• <a href="https://mantsova.tilda.ws/soglasie">Согласие на получение информационных сообщений</a>',
-      '• <a href="https://mantsova.tilda.ws/oferta">Договор оферты</a>'
+      '• <a href="https://zagorodom96.ru/soglasie">Согласие на получение информационных сообщений</a>',
+      '• <a href="https://zagorodom96.ru/oferta">Договор оферты</a>'
     ].join('\n');
 
     const keyboard = new InlineKeyboard()
@@ -139,3 +139,4 @@ export class StartCommand extends CommandHandler {
     }
   }
 }
+
