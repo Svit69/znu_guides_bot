@@ -194,6 +194,7 @@ export class BotApp extends Application {
       new StartCommand({
         guideService: this.guideService,
         messages: this.config.messages,
+        subscription: this.config.subscription,
         logger: this.logger
       })
     );

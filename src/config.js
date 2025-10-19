@@ -45,6 +45,13 @@ const defaultGuidesFile =
  * @property {number[]} admins List of Telegram user identifiers with admin privileges.
  * @property {{ guidesFile: string }} storage Storage locations used by the app.
  * @property {MessageCatalog} messages Text resources shared throughout the bot.
+ * @property {{
+ *   channelUsername: string,
+ *   channelLink: string,
+ *   promptMessage: string,
+ *   buttonText: string,
+ *   reminderMessage: string
+ * }} subscription Subscription enforcement settings.
  */
 
 /**
@@ -70,6 +77,15 @@ export const config = {
   admins: parseAdminIds(),
   storage: {
     guidesFile: defaultGuidesFile
+  },
+  subscription: {
+    channelUsername: process.env.SUBSCRIPTION_CHANNEL_USERNAME?.trim() || '@zagorodomekb',
+    channelLink: process.env.SUBSCRIPTION_CHANNEL_LINK?.trim() || 'https://t.me/zagorodomekb',
+    promptMessage:
+      'Прежде чем получить гайд, подпишитесь на наш канал <a href="https://t.me/zagorodomekb">Загородная Недвижимость Урала</a>.',
+    buttonText: 'Проверить подписку',
+    reminderMessage:
+      'Мы очень ценим ваш интерес к нашим материалам! Подпишитесь, пожалуйста, на канал <a href="https://t.me/zagorodomekb">Загородная Недвижимость Урала</a>, чтобы открыть доступ к гайдам ❤️'
   },
   messages: {
     noGuides:
