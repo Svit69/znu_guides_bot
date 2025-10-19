@@ -122,7 +122,7 @@ export class StartCommand extends CommandHandler {
 
     const keyboard = new InlineKeyboard();
     guides.forEach((guide) => {
-      keyboard.text(guide.title, `guide:${guide.id}`).row();
+      keyboard.text(`Получить гайд: ${guide.title}`, `guide:${guide.id}`).row();
     });
 
     let mediaSent = false;
