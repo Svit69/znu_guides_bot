@@ -8,13 +8,15 @@ export class GetGuidesCommand extends CommandHandler {
   /**
    * @param {Object} params Constructor parameters.
    * @param {import('../services/GuideService.js').GuideService} params.guideService Domain service providing guide metadata.
-   * @param {{ noGuides: string }} params.messages Message catalog for user facing texts.
-   * @param {import('../../core/Logger.js').Logger} [params.logger] Structured logger.
-   */
-  constructor({ guideService, messages, logger }) {
+ * @param {{ noGuides: string }} params.messages Message catalog for user facing texts.
+ * @param {import('../services/SubscriptionService.js').SubscriptionService} [params.subscriptionService] Subscription enforcement service.
+ * @param {import('../../core/Logger.js').Logger} [params.logger] Structured logger.
+ */
+  constructor({ guideService, messages, subscriptionService, logger }) {
     super('get');
     this.guideService = guideService;
     this.messages = messages;
+    this.subscriptionService = subscriptionService ?? null;
     this.logger = logger;
   }
 
@@ -35,6 +37,13 @@ export class GetGuidesCommand extends CommandHandler {
    */
   async execute(ctx) {
     try {
+      if (this.subscriptionService?.isEnabled()) {
+        const subscribed = await this.subscriptionService.requireSubscription(ctx);
+        if (!subscribed) {
+          return;
+        }
+      }
+
       const guides = await this.guideService.listAvailableGuides();
 
       if (!guides.length) {
@@ -63,6 +72,17 @@ export class GetGuidesCommand extends CommandHandler {
    */
   async handleGuideSelection(ctx) {
     try {
+      if (this.subscriptionService?.isEnabled()) {
+        const subscribed = await this.subscriptionService.requireSubscription(ctx);
+        if (!subscribed) {
+          await ctx.answerCallbackQuery({
+            text: 'Подписка на канал необходима для доступа к гайдам.',
+            show_alert: true
+          });
+          return;
+        }
+      }
+
       const guideId = ctx.match?.[1];
       if (!guideId) {
         await ctx.answerCallbackQuery({

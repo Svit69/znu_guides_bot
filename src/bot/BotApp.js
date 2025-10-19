@@ -7,6 +7,7 @@ import { GetGuidesCommand } from './commands/GetGuidesCommand.js';
 import { GuideService } from './services/GuideService.js';
 import { GuideRepository } from './repositories/GuideRepository.js';
 import { AdminService } from './services/AdminService.js';
+import { SubscriptionService } from './services/SubscriptionService.js';
 import { AdminFlowManager } from './admin/AdminFlowManager.js';
 import { AdminMenuCommand } from './commands/admin/AdminMenuCommand.js';
 import { ShowGuidesCommand } from './commands/admin/ShowGuidesCommand.js';
@@ -26,6 +27,7 @@ export class BotApp extends Application {
    * @param {GuideService} [params.guideService] Guide metadata service.
    * @param {GuideRepository} [params.guideRepository] Guides repository.
    * @param {AdminService} [params.adminService] Administrator service.
+   * @param {SubscriptionService} [params.subscriptionService] Subscription enforcement service.
    * @param {AdminFlowManager} [params.adminFlowManager] Admin flow manager.
    */
   constructor({
@@ -36,6 +38,7 @@ export class BotApp extends Application {
     guideService,
     guideRepository,
     adminService,
+    subscriptionService,
     adminFlowManager
   }) {
     super({ logger: logger ?? new ConsoleLogger() });
@@ -90,6 +93,20 @@ export class BotApp extends Application {
       new AdminService({
         adminIds: this.config.admins,
         messages: { adminOnly: this.config.messages.adminOnly },
+        logger: this.logger
+      });
+
+    /**
+     * @private
+     * @type {SubscriptionService}
+     */
+    this.subscriptionService =
+      subscriptionService ??
+      new SubscriptionService({
+        channelUsername: this.config.subscription?.channelUsername,
+        promptMessage: this.config.subscription?.promptMessage,
+        buttonText: this.config.subscription?.buttonText,
+        reminderMessage: this.config.subscription?.reminderMessage,
         logger: this.logger
       });
 
@@ -194,7 +211,7 @@ export class BotApp extends Application {
       new StartCommand({
         guideService: this.guideService,
         messages: this.config.messages,
-        subscription: this.config.subscription,
+        subscriptionService: this.subscriptionService,
         logger: this.logger
       })
     );
@@ -202,6 +219,7 @@ export class BotApp extends Application {
       new GetGuidesCommand({
         guideService: this.guideService,
         messages: this.config.messages,
+        subscriptionService: this.subscriptionService,
         logger: this.logger
       })
     );
