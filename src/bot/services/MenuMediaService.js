@@ -60,7 +60,7 @@ export class MenuMediaService {
    * @param {import('grammy').Context} ctx Grammy context.
    * @returns {Promise<boolean>} True when media was sent.
    */
-  async sendMenuMedia(ctx) {
+  async sendMenuMedia(ctx, options = {}) {
     try {
       const media = await this.getMenuMedia();
 
@@ -68,13 +68,17 @@ export class MenuMediaService {
         return false;
       }
 
+      const replyMarkup = options.replyMarkup ?? undefined;
+
       if (media.type === 'video') {
         await ctx.replyWithVideo(media.fileId, {
-          caption: media.caption ?? undefined
+          caption: media.caption ?? undefined,
+          reply_markup: replyMarkup
         });
       } else {
         await ctx.replyWithPhoto(media.fileId, {
-          caption: media.caption ?? undefined
+          caption: media.caption ?? undefined,
+          reply_markup: replyMarkup
         });
       }
 
@@ -85,4 +89,3 @@ export class MenuMediaService {
     }
   }
 }
-

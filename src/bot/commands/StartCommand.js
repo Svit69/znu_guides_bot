@@ -120,17 +120,22 @@ export class StartCommand extends CommandHandler {
       return;
     }
 
-    if (this.menuMediaService) {
-      await this.menuMediaService.sendMenuMedia(ctx);
-    }
-
     const keyboard = new InlineKeyboard();
     guides.forEach((guide) => {
       keyboard.text(guide.title, `guide:${guide.id}`).row();
     });
 
-    await ctx.reply('Какой гайд вы бы хотели получить?', {
-      reply_markup: keyboard
-    });
+    let mediaSent = false;
+    if (this.menuMediaService) {
+      mediaSent = await this.menuMediaService.sendMenuMedia(ctx, {
+        replyMarkup: keyboard
+      });
+    }
+
+    if (!mediaSent) {
+      await ctx.reply('Выберите гайд:', {
+        reply_markup: keyboard
+      });
+    }
   }
 }
