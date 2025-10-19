@@ -93,8 +93,17 @@ export class AdminFlowManager {
         return;
       }
 
+      ctx.session ??= { adminFlow: null, menuMediaFlow: null };
+      const hasMenuMediaFlow = Boolean(ctx.session.menuMediaFlow?.awaitingMedia);
+
       if (this.getFlow(ctx)) {
         await this.resetFlow(ctx);
+        await ctx.reply(this.messages.flowCancelled);
+        return;
+      }
+
+      if (hasMenuMediaFlow) {
+        ctx.session.menuMediaFlow = null;
         await ctx.reply(this.messages.flowCancelled);
       } else {
         await ctx.reply(this.messages.nothingToConfirm);
@@ -108,7 +117,7 @@ export class AdminFlowManager {
    * @returns {Promise<void>}
    */
   async startAddFlow(ctx) {
-    ctx.session ??= { adminFlow: null };
+    ctx.session ??= { adminFlow: null, menuMediaFlow: null };
 
     ctx.session.adminFlow = {
       initiatorId: ctx.from?.id ?? 0,
@@ -149,7 +158,7 @@ export class AdminFlowManager {
       { parse_mode: 'HTML' }
     );
 
-    ctx.session ??= { adminFlow: null };
+    ctx.session ??= { adminFlow: null, menuMediaFlow: null };
     ctx.session.adminFlow = {
       initiatorId: ctx.from?.id ?? 0,
       mode: 'delete',
@@ -400,7 +409,7 @@ export class AdminFlowManager {
    * @returns {Promise<void>}
    */
   async resetFlow(ctx) {
-    ctx.session ??= { adminFlow: null };
+    ctx.session ??= { adminFlow: null, menuMediaFlow: null };
     ctx.session.adminFlow = null;
   }
 

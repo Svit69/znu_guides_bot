@@ -8,11 +8,14 @@ import { GuideService } from './services/GuideService.js';
 import { GuideRepository } from './repositories/GuideRepository.js';
 import { AdminService } from './services/AdminService.js';
 import { SubscriptionService } from './services/SubscriptionService.js';
+import { MenuMediaService } from './services/MenuMediaService.js';
+import { MenuMediaRepository } from './repositories/MenuMediaRepository.js';
 import { AdminFlowManager } from './admin/AdminFlowManager.js';
 import { AdminMenuCommand } from './commands/admin/AdminMenuCommand.js';
 import { ShowGuidesCommand } from './commands/admin/ShowGuidesCommand.js';
 import { AddGuideCommand } from './commands/admin/AddGuideCommand.js';
 import { DeleteGuideCommand } from './commands/admin/DeleteGuideCommand.js';
+import { ImageMenuCommand } from './commands/admin/ImageMenuCommand.js';
 
 /**
  * Orchestrates bot initialization and lifecycle.
@@ -28,6 +31,8 @@ export class BotApp extends Application {
    * @param {GuideRepository} [params.guideRepository] Guides repository.
    * @param {AdminService} [params.adminService] Administrator service.
    * @param {SubscriptionService} [params.subscriptionService] Subscription enforcement service.
+   * @param {MenuMediaService} [params.menuMediaService] Menu media service.
+   * @param {MenuMediaRepository} [params.menuMediaRepository] Menu media repository.
    * @param {AdminFlowManager} [params.adminFlowManager] Admin flow manager.
    */
   constructor({
@@ -39,6 +44,8 @@ export class BotApp extends Application {
     guideRepository,
     adminService,
     subscriptionService,
+    menuMediaService,
+    menuMediaRepository,
     adminFlowManager
   }) {
     super({ logger: logger ?? new ConsoleLogger() });
@@ -112,6 +119,28 @@ export class BotApp extends Application {
 
     /**
      * @private
+     * @type {MenuMediaRepository}
+     */
+    this.menuMediaRepository =
+      menuMediaRepository ??
+      new MenuMediaRepository({
+        storagePath: this.config.storage.menuMediaFile,
+        logger: this.logger
+      });
+
+    /**
+     * @private
+     * @type {MenuMediaService}
+     */
+    this.menuMediaService =
+      menuMediaService ??
+      new MenuMediaService({
+        repository: this.menuMediaRepository,
+        logger: this.logger
+      });
+
+    /**
+     * @private
      * @type {AdminFlowManager}
      */
     this.adminFlowManager =
@@ -153,7 +182,8 @@ export class BotApp extends Application {
     this.bot.use(
       session({
         initial: () => ({
-          adminFlow: null
+          adminFlow: null,
+          menuMediaFlow: null
         })
       })
     );
@@ -184,6 +214,7 @@ export class BotApp extends Application {
       { command: 'admin', description: 'Список админских команд' },
       { command: 'show_guides', description: 'Показать список всех гайдов' },
       { command: 'add', description: 'Добавить новый гайд' },
+      { command: 'image_menu', description: 'Загрузить медиа перед меню гайдов' },
       { command: 'delete', description: 'Удалить гайд' },
       { command: 'confirm', description: 'Подтвердить действие' },
       { command: 'cancel', description: 'Отменить действие' }
@@ -212,6 +243,7 @@ export class BotApp extends Application {
         guideService: this.guideService,
         messages: this.config.messages,
         subscriptionService: this.subscriptionService,
+        menuMediaService: this.menuMediaService,
         logger: this.logger
       })
     );
@@ -220,6 +252,7 @@ export class BotApp extends Application {
         guideService: this.guideService,
         messages: this.config.messages,
         subscriptionService: this.subscriptionService,
+        menuMediaService: this.menuMediaService,
         logger: this.logger
       })
     );
@@ -241,6 +274,13 @@ export class BotApp extends Application {
       new AddGuideCommand({
         adminService: this.adminService,
         flowManager: this.adminFlowManager,
+        logger: this.logger
+      })
+    );
+    this.commandRegistry.register(
+      new ImageMenuCommand({
+        adminService: this.adminService,
+        menuMediaService: this.menuMediaService,
         logger: this.logger
       })
     );

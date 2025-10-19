@@ -8,15 +8,17 @@ export class StartCommand extends CommandHandler {
   /**
    * @param {Object} params Constructor parameters.
    * @param {import('../services/GuideService.js').GuideService} params.guideService Guide service used to list guides.
- * @param {{ noGuides: string }} params.messages Shared user messages.
- * @param {import('../services/SubscriptionService.js').SubscriptionService} [params.subscriptionService] Subscription service.
- * @param {import('../../core/Logger.js').Logger} [params.logger] Logger.
- */
-  constructor({ guideService, messages, subscriptionService, logger }) {
+   * @param {{ noGuides: string }} params.messages Shared user messages.
+   * @param {import('../services/SubscriptionService.js').SubscriptionService} [params.subscriptionService] Subscription service.
+   * @param {import('../services/MenuMediaService.js').MenuMediaService} [params.menuMediaService] Menu media service.
+   * @param {import('../../core/Logger.js').Logger} [params.logger] Logger.
+   */
+  constructor({ guideService, messages, subscriptionService, menuMediaService, logger }) {
     super('start');
     this.guideService = guideService;
     this.messages = messages;
     this.subscriptionService = subscriptionService ?? null;
+    this.menuMediaService = menuMediaService ?? null;
     this.logger = logger;
   }
 
@@ -116,6 +118,10 @@ export class StartCommand extends CommandHandler {
     if (!guides.length) {
       await ctx.reply(this.messages.noGuides);
       return;
+    }
+
+    if (this.menuMediaService) {
+      await this.menuMediaService.sendMenuMedia(ctx);
     }
 
     const keyboard = new InlineKeyboard();

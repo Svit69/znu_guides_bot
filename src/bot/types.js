@@ -15,8 +15,15 @@
  */
 
 /**
+ * @typedef {Object} MenuMediaFlowState
+ * @property {number} initiatorId Identifier of the admin who initiated the media update.
+ * @property {boolean} awaitingMedia Whether the flow is waiting for media input.
+ */
+
+/**
  * @typedef {Object} BotSession
  * @property {AdminFlowState | null} adminFlow Admin flow state associated with the user.
+ * @property {MenuMediaFlowState | null} menuMediaFlow Menu media configuration flow.
  */
 
 // Export marker to keep file as an ES module.

@@ -24,6 +24,7 @@ export class AdminMenuCommand extends AdminCommand {
         '/admin — список админских команд.',
         '/show_guides — показать список всех гайдов.',
         '/add — добавить новый гайд.',
+        '/image_menu — загрузить медиа перед меню с гайдами.',
         '/delete — удалить гайд.',
         '/confirm — подтвердить текущее действие.',
         '/cancel — отменить текущее действие.'

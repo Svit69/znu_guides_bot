@@ -8,15 +8,17 @@ export class GetGuidesCommand extends CommandHandler {
   /**
    * @param {Object} params Constructor parameters.
    * @param {import('../services/GuideService.js').GuideService} params.guideService Domain service providing guide metadata.
- * @param {{ noGuides: string }} params.messages Message catalog for user facing texts.
- * @param {import('../services/SubscriptionService.js').SubscriptionService} [params.subscriptionService] Subscription enforcement service.
- * @param {import('../../core/Logger.js').Logger} [params.logger] Structured logger.
- */
-  constructor({ guideService, messages, subscriptionService, logger }) {
+   * @param {{ noGuides: string }} params.messages Message catalog for user facing texts.
+   * @param {import('../services/SubscriptionService.js').SubscriptionService} [params.subscriptionService] Subscription enforcement service.
+   * @param {import('../services/MenuMediaService.js').MenuMediaService} [params.menuMediaService] Menu media service.
+   * @param {import('../../core/Logger.js').Logger} [params.logger] Structured logger.
+   */
+  constructor({ guideService, messages, subscriptionService, menuMediaService, logger }) {
     super('get');
     this.guideService = guideService;
     this.messages = messages;
     this.subscriptionService = subscriptionService ?? null;
+    this.menuMediaService = menuMediaService ?? null;
     this.logger = logger;
   }
 
@@ -49,6 +51,10 @@ export class GetGuidesCommand extends CommandHandler {
       if (!guides.length) {
         await ctx.reply(this.messages.noGuides);
         return;
+      }
+
+      if (this.menuMediaService) {
+        await this.menuMediaService.sendMenuMedia(ctx);
       }
 
       const keyboard = new InlineKeyboard();
