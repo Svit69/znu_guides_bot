@@ -21,6 +21,11 @@ const defaultMenuMediaFile =
     ? resolve(process.cwd(), process.env.MENU_MEDIA_DATA_PATH)
     : resolve(process.cwd(), 'data', 'menu-media.json');
 
+const defaultUsersFile =
+  process.env.USERS_DATA_PATH && process.env.USERS_DATA_PATH.trim().length > 0
+    ? resolve(process.cwd(), process.env.USERS_DATA_PATH)
+    : resolve(process.cwd(), 'data', 'users.json');
+
 /**
  * Guide descriptor shape.
  * @typedef {Object} GuideDescriptor
@@ -48,7 +53,7 @@ const defaultMenuMediaFile =
  * @property {string[]} polling.allowedUpdates Allowed update types for long polling.
  * @property {GuideDescriptor[]} guides Static guide descriptors used for initial seeding.
  * @property {number[]} admins List of Telegram user identifiers with admin privileges.
- * @property {{ guidesFile: string, menuMediaFile: string }} storage Storage locations used by the app.
+ * @property {{ guidesFile: string, menuMediaFile: string, usersFile: string }} storage Storage locations used by the app.
  * @property {MessageCatalog} messages Text resources shared throughout the bot.
  * @property {{
  *   channelUsername: string,
@@ -82,7 +87,8 @@ export const config = {
   admins: parseAdminIds(),
   storage: {
     guidesFile: defaultGuidesFile,
-    menuMediaFile: defaultMenuMediaFile
+    menuMediaFile: defaultMenuMediaFile,
+    usersFile: defaultUsersFile
   },
   subscription: {
     channelUsername: process.env.SUBSCRIPTION_CHANNEL_USERNAME?.trim() || '@zagorodomekb',

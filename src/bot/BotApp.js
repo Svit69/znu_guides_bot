@@ -10,12 +10,15 @@ import { AdminService } from './services/AdminService.js';
 import { SubscriptionService } from './services/SubscriptionService.js';
 import { MenuMediaService } from './services/MenuMediaService.js';
 import { MenuMediaRepository } from './repositories/MenuMediaRepository.js';
+import { UserService } from './services/UserService.js';
+import { UserRepository } from './repositories/UserRepository.js';
 import { AdminFlowManager } from './admin/AdminFlowManager.js';
 import { AdminMenuCommand } from './commands/admin/AdminMenuCommand.js';
 import { ShowGuidesCommand } from './commands/admin/ShowGuidesCommand.js';
 import { AddGuideCommand } from './commands/admin/AddGuideCommand.js';
 import { DeleteGuideCommand } from './commands/admin/DeleteGuideCommand.js';
 import { ImageMenuCommand } from './commands/admin/ImageMenuCommand.js';
+import { ListUsersCommand } from './commands/admin/ListUsersCommand.js';
 
 /**
  * Orchestrates bot initialization and lifecycle.
@@ -33,6 +36,8 @@ export class BotApp extends Application {
    * @param {SubscriptionService} [params.subscriptionService] Subscription enforcement service.
    * @param {MenuMediaService} [params.menuMediaService] Menu media service.
    * @param {MenuMediaRepository} [params.menuMediaRepository] Menu media repository.
+   * @param {UserService} [params.userService] User registry service.
+   * @param {UserRepository} [params.userRepository] User repository.
    * @param {AdminFlowManager} [params.adminFlowManager] Admin flow manager.
    */
   constructor({
@@ -46,6 +51,8 @@ export class BotApp extends Application {
     subscriptionService,
     menuMediaService,
     menuMediaRepository,
+    userService,
+    userRepository,
     adminFlowManager
   }) {
     super({ logger: logger ?? new ConsoleLogger() });
@@ -141,6 +148,28 @@ export class BotApp extends Application {
 
     /**
      * @private
+     * @type {UserRepository}
+     */
+    this.userRepository =
+      userRepository ??
+      new UserRepository({
+        storagePath: this.config.storage.usersFile,
+        logger: this.logger
+      });
+
+    /**
+     * @private
+     * @type {UserService}
+     */
+    this.userService =
+      userService ??
+      new UserService({
+        repository: this.userRepository,
+        logger: this.logger
+      });
+
+    /**
+     * @private
      * @type {AdminFlowManager}
      */
     this.adminFlowManager =
@@ -215,6 +244,7 @@ export class BotApp extends Application {
       { command: 'show_guides', description: 'Показать список всех гайдов' },
       { command: 'add', description: 'Добавить новый гайд' },
       { command: 'image_menu', description: 'Загрузить медиа перед меню гайдов' },
+      { command: 'users', description: 'Показать зарегистрированных пользователей' },
       { command: 'delete', description: 'Удалить гайд' },
       { command: 'confirm', description: 'Подтвердить действие' },
       { command: 'cancel', description: 'Отменить действие' }
@@ -244,6 +274,7 @@ export class BotApp extends Application {
         messages: this.config.messages,
         subscriptionService: this.subscriptionService,
         menuMediaService: this.menuMediaService,
+        userService: this.userService,
         logger: this.logger
       })
     );
@@ -274,6 +305,13 @@ export class BotApp extends Application {
       new AddGuideCommand({
         adminService: this.adminService,
         flowManager: this.adminFlowManager,
+        logger: this.logger
+      })
+    );
+    this.commandRegistry.register(
+      new ListUsersCommand({
+        adminService: this.adminService,
+        userService: this.userService,
         logger: this.logger
       })
     );

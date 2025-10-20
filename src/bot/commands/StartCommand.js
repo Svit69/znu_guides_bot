@@ -11,14 +11,16 @@ export class StartCommand extends CommandHandler {
    * @param {{ noGuides: string }} params.messages Shared user messages.
    * @param {import('../services/SubscriptionService.js').SubscriptionService} [params.subscriptionService] Subscription service.
    * @param {import('../services/MenuMediaService.js').MenuMediaService} [params.menuMediaService] Menu media service.
+   * @param {import('../services/UserService.js').UserService} [params.userService] User registry service.
    * @param {import('../../core/Logger.js').Logger} [params.logger] Logger.
    */
-  constructor({ guideService, messages, subscriptionService, menuMediaService, logger }) {
+  constructor({ guideService, messages, subscriptionService, menuMediaService, userService, logger }) {
     super('start');
     this.guideService = guideService;
     this.messages = messages;
     this.subscriptionService = subscriptionService ?? null;
     this.menuMediaService = menuMediaService ?? null;
+    this.userService = userService ?? null;
     this.logger = logger;
   }
 
@@ -82,6 +84,7 @@ export class StartCommand extends CommandHandler {
   async handleConsentAccept(ctx) {
     try {
       await ctx.answerCallbackQuery();
+      await this.registerUser(ctx);
 
       if (this.subscriptionService?.isEnabled()) {
         await this.subscriptionService.sendPrompt(ctx);
@@ -138,5 +141,21 @@ export class StartCommand extends CommandHandler {
       });
     }
   }
-}
 
+  /**
+   * Registers user via service if available.
+   * @param {import('grammy').CallbackQueryContext<import('grammy').Context>} ctx Grammy callback context.
+   * @returns {Promise<void>}
+   */
+  async registerUser(ctx) {
+    if (!this.userService) {
+      return;
+    }
+
+    try {
+      await this.userService.registerUser(ctx.from);
+    } catch (error) {
+      this.logger?.error('Failed to register user.', error);
+    }
+  }
+}
