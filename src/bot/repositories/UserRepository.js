@@ -65,7 +65,7 @@ export class UserRepository {
 
   /**
    * Retrieves all users from storage.
-   * @returns {Promise<Array<{ id: number, username?: string, firstName?: string, lastName?: string, languageCode?: string, registeredAt?: string }>>}
+   * @returns {Promise<Array<{ id: number, username?: string, firstName?: string, lastName?: string, languageCode?: string, phoneNumber?: string | null, registeredAt?: string }>>}
    */
   async findAll() {
     return this.read();
@@ -80,4 +80,3 @@ export class UserRepository {
     await this.write(users);
   }
 }
-

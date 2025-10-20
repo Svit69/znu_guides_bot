@@ -45,6 +45,7 @@ export class UserService {
       firstName: from.first_name,
       lastName: from.last_name,
       languageCode: from.language_code,
+      phoneNumber: null,
       registeredAt: new Date().toISOString()
     });
 
@@ -53,10 +54,9 @@ export class UserService {
 
   /**
    * Lists all registered users.
-   * @returns {Promise<Array<{ id: number, username?: string, firstName?: string, lastName?: string, languageCode?: string, registeredAt?: string }>>}
+   * @returns {Promise<Array<{ id: number, username?: string, firstName?: string, lastName?: string, languageCode?: string, phoneNumber?: string | null, registeredAt?: string }>>}
    */
   async listUsers() {
     return this.repository.findAll();
   }
 }
-

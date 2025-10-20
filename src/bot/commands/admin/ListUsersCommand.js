@@ -49,11 +49,12 @@ export class ListUsersCommand extends AdminCommand {
     const nameParts = [user.firstName, user.lastName].filter(Boolean);
     const displayName = nameParts.length ? nameParts.join(' ') : '—';
     const username = user.username ? `@${user.username}` : 'нет username';
+    const phone = user.phoneNumber ? user.phoneNumber : 'телефон не указан';
     const registeredAt = user.registeredAt
       ? this.formatDate(user.registeredAt)
       : 'дата неизвестна';
 
-    return `${order}. ID ${user.id} (${username}) — ${displayName}; зарегистрирован: ${registeredAt}`;
+    return `${order}. ID ${user.id} (${username}) — ${displayName}; ${phone}; зарегистрирован: ${registeredAt}`;
   }
 
   /**
@@ -77,4 +78,3 @@ export class ListUsersCommand extends AdminCommand {
     return `${day}.${month}.${year} ${hours}:${minutes}`;
   }
 }
-
