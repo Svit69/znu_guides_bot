@@ -42,7 +42,7 @@ export class ImageMenuCommand extends AdminCommand {
    * @param {import('grammy').Context & { session?: import('../../types.js').BotSession }} ctx Grammy context.
    */
   async execute(ctx) {
-    ctx.session ??= { adminFlow: null, menuMediaFlow: null };
+    ctx.session ??= { adminFlow: null, menuMediaFlow: null, subscriptionAudit: null };
     ctx.session.menuMediaFlow = {
       awaitingMedia: true,
       initiatorId: ctx.from?.id ?? 0

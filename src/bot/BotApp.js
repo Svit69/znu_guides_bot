@@ -19,6 +19,7 @@ import { AddGuideCommand } from './commands/admin/AddGuideCommand.js';
 import { DeleteGuideCommand } from './commands/admin/DeleteGuideCommand.js';
 import { ImageMenuCommand } from './commands/admin/ImageMenuCommand.js';
 import { ListUsersCommand } from './commands/admin/ListUsersCommand.js';
+import { CheckChannelCommand } from './commands/admin/CheckChannelCommand.js';
 
 /**
  * Orchestrates bot initialization and lifecycle.
@@ -212,7 +213,8 @@ export class BotApp extends Application {
       session({
         initial: () => ({
           adminFlow: null,
-          menuMediaFlow: null
+          menuMediaFlow: null,
+          subscriptionAudit: null
         })
       })
     );
@@ -228,7 +230,7 @@ export class BotApp extends Application {
    */
   async configureCommands() {
     const userCommands = [
-      { command: 'start', description: 'Информация о согласиях' },
+      { command: 'start', description: 'Информация о возможностях бота' },
       { command: 'get', description: 'Получить доступ к гайдам' }
     ];
 
@@ -240,14 +242,15 @@ export class BotApp extends Application {
 
     const adminCommands = [
       ...userCommands,
-      { command: 'admin', description: 'Список админских команд' },
-      { command: 'show_guides', description: 'Показать список всех гайдов' },
-      { command: 'add', description: 'Добавить новый гайд' },
-      { command: 'image_menu', description: 'Загрузить медиа перед меню гайдов' },
-      { command: 'users', description: 'Показать зарегистрированных пользователей' },
-      { command: 'delete', description: 'Удалить гайд' },
-      { command: 'confirm', description: 'Подтвердить действие' },
-      { command: 'cancel', description: 'Отменить действие' }
+      { command: 'admin', description: 'справка по админ-командам' },
+      { command: 'show_guides', description: 'перечень загруженных гайдов' },
+      { command: 'add', description: 'добавить новый гайд' },
+      { command: 'users', description: 'список зарегистрированных пользователей' },
+      { command: 'check_channel', description: 'проверить подписку на t.me/goalevaya' },
+      { command: 'image_menu', description: 'управление изображениями меню' },
+      { command: 'delete', description: 'удалить гайд' },
+      { command: 'confirm', description: 'подтвердить последнее действие' },
+      { command: 'cancel', description: 'отменить активный процесс' }
     ];
 
     for (const adminId of this.config.admins) {
@@ -316,6 +319,14 @@ export class BotApp extends Application {
       })
     );
     this.commandRegistry.register(
+      new CheckChannelCommand({
+        adminService: this.adminService,
+        subscriptionService: this.subscriptionService,
+        userService: this.userService,
+        logger: this.logger
+      })
+    );
+    this.commandRegistry.register(
       new ImageMenuCommand({
         adminService: this.adminService,
         menuMediaService: this.menuMediaService,
@@ -370,3 +381,4 @@ export class BotApp extends Application {
     this.logger?.info('Bot stopped.');
   }
 }
+

@@ -21,9 +21,16 @@
  */
 
 /**
+ * @typedef {Object} SubscriptionAuditState
+ * @property {number} initiatorId Identifier of the admin who requested the check.
+ * @property {string} requestedAt ISO timestamp when the check was initiated.
+ */
+
+/**
  * @typedef {Object} BotSession
  * @property {AdminFlowState | null} adminFlow Admin flow state associated with the user.
  * @property {MenuMediaFlowState | null} menuMediaFlow Menu media configuration flow.
+ * @property {SubscriptionAuditState | null} subscriptionAudit Pending channel subscription audit.
  */
 
 // Export marker to keep file as an ES module.
